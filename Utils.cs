@@ -112,7 +112,7 @@ namespace MigrateData3to4
 			int h = Convert.ToInt32(time[0]);
 			int m = Convert.ToInt32(time[1]);
 
-			return new DateTime(Y, M, D, h, m, 0);
+			return new DateTime(Y, M, D, h, m, 0, DateTimeKind.Local);
 		}
 
 		internal static long ToUnixTime(DateTime dateTime)
