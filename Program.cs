@@ -6,9 +6,10 @@ namespace MigrateData3to4
 {
 	class Program
 	{
-		public static string Dest = "datav4";
+        public static string Src = "data";
+        public static string Dest = "datav4";
 
-		static void Main()
+        static void Main()
 		{
 			TextWriterTraceListener myTextListener = new($"MXdiags{Path.DirectorySeparatorChar}MigrateData-{DateTime.Now:yyyyMMdd-HHmmss}.txt", "MDlog");
 			Trace.Listeners.Add(myTextListener);
@@ -40,19 +41,20 @@ namespace MigrateData3to4
 			Utils.LogMessage("Processing started");
 			Console.WriteLine($"\nProcessing started: {DateTime.Now:U}\n");
 
-			if (!Directory.Exists("data"))
+			if (!Directory.Exists(Src))
 			{
-				Utils.LogMessage("Error: Source folder 'data' does not exist. Aborting");
+				Utils.LogMessage($"Error: Source folder '{Src}' does not exist. Aborting");
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine("Error: Source folder 'data' does not exist. Aborting");
+				Console.WriteLine($"Error: Source folder '{Src}' does not exist. Aborting");
 				Console.ForegroundColor = ConsoleColor.White;
 				Environment.Exit(1);
 			}
 
-			if (!Directory.Exists(Dest))
+
+            if (!Directory.Exists(Dest))
 			{
-				Utils.LogMessage("Target folder data2 does not exist, creating it...");
-				Console.WriteLine("Target folder data2 does not exist, creating it...");
+				Utils.LogMessage($"Target folder '{Dest}' does not exist, creating it...");
+				Console.WriteLine($"Target folder '{Dest}' does not exist, creating it...");
 
 				Directory.CreateDirectory(Dest);
 			}
