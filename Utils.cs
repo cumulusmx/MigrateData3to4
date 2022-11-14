@@ -142,5 +142,32 @@ namespace MigrateData3to4
 			return "AirLink-" + datestring + "-log.txt";
 		}
 
+		internal static DateTime ResolveAmbiguousTime(DateTime ambiguousTime, bool useDstTime)
+		{
+			// Time is not ambiguous
+			if (!TimeZoneInfo.Local.IsAmbiguousTime(ambiguousTime))
+			{
+				return ambiguousTime.ToUniversalTime();
+			}
+			// Time is ambiguous
+			else
+			{
+				var offsets = TimeZoneInfo.Local.GetAmbiguousTimeOffsets(ambiguousTime);
+				var offset = TimeZoneInfo.Local.BaseUtcOffset;
+
+				if (useDstTime)
+				{
+					for (var i = 0; i < offsets.Length; i++)
+					{
+						if (!offsets[i].Equals(TimeZoneInfo.Local.BaseUtcOffset))
+						{
+							offset = offsets[i];
+							break;
+						}
+					}
+				}
+				return DateTime.SpecifyKind(ambiguousTime - offset, DateTimeKind.Utc);
+			}
+		}
 	}
 }

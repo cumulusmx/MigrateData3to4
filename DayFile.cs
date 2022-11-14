@@ -66,7 +66,9 @@ namespace MigrateData3to4
 					// Do the date
 					outLine.Append(Utils.DdmmyyStrToStr(fields[0]));
 					outLine.Append(',');
-
+					// Do the Unix timestamp
+					outLine.Append(Utils.ToUnixTime(Utils.DdmmyyStrToDate(fields[0])));
+					outLine.Append(',');
 					// do the rest of the fields, converting comma decimals to dot
 					foreach (var field in fields.Skip(1))
 					{

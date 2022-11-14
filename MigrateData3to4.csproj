@@ -6,9 +6,10 @@
     <Authors>Mark Crossley</Authors>
     <Company>Cumulus MX</Company>
     <Product>Cumulus MX Data Migration Utility</Product>
-    <AssemblyVersion>1.0.0.0003</AssemblyVersion>
-    <FileVersion>1.0.0.0003</FileVersion>
+    <AssemblyVersion>1.0.0.0004</AssemblyVersion>
+    <FileVersion>1.0.0.0004</FileVersion>
     <Version></Version>
+    <StartupObject>MigrateData3to4.Program</StartupObject>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

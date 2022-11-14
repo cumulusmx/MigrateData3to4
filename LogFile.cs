@@ -133,6 +133,8 @@ namespace MigrateData3to4
 			var lineNum = 0;
 			string inpLine;
 			StringBuilder outLine = new(512);
+			bool inDST;
+			DateTime previousDate = DateTime.MinValue;
 
 			try
 			{
@@ -151,9 +153,20 @@ namespace MigrateData3to4
 						// get the date and time
 						var date = Utils.DdmmyyhhmmStrToDate(fields[0], fields[1]);
 
+						// check if we are in standard time or DST
+						inDST = !TimeZoneInfo.Local.IsDaylightSavingTime(date);
+
+						if (inDST && date < previousDate)
+						{
+							inDST = false;
+						}
+						previousDate= date;
+
+						var utcDate = Utils.ResolveAmbiguousTime(date, inDST);
+
 						outLine.Append(date.ToString("dd/MM/yy HH:mm", CultureInfo.InvariantCulture.DateTimeFormat));
 						outLine.Append(',');
-						outLine.Append(Utils.ToUnixTime(date));
+						outLine.Append(Utils.ToUnixTime(utcDate));
 						outLine.Append(',');
 
 						// do the rest of the fields, converting comma decimals to dot
