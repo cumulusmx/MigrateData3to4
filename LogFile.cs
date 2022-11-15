@@ -43,7 +43,7 @@ namespace MigrateData3to4
 		{
 			// Get a list of the files using a regex
 			var reg = new Regex(@"[a-zA-Z]+[0-9]{2}log\.txt");
-			var monFiles = Directory.GetFiles("data", "*log.txt").Where(path => reg.IsMatch(path)).ToArray();
+			var monFiles = Directory.GetFiles(Program.Src, "*log.txt").Where(path => reg.IsMatch(path)).ToArray();
 			Console.WriteLine($"Found {monFiles.Length} monthly log files to process");
 			Utils.LogMessage($"LogFile: Found {monFiles.Length} monthly log files to process");
 
@@ -53,7 +53,7 @@ namespace MigrateData3to4
 		private static void DoExtraLogFiles()
 		{
 			// Get a list of the files
-			var monFiles = Directory.GetFiles("data", "Extra*.txt");
+			var monFiles = Directory.GetFiles(Program.Src, "Extra*.txt");
 			Console.WriteLine($"Found {monFiles.Length} monthly log files to process");
 			Utils.LogMessage($"ExtraLogFile: Found {monFiles.Length} monthly log files to process");
 
@@ -63,7 +63,7 @@ namespace MigrateData3to4
 		private static void DoAirLinkLogFiles()
 		{
 			// Get a list of the files
-			var monFiles = Directory.GetFiles("data", "AirLink*log.txt");
+			var monFiles = Directory.GetFiles(Program.Src, "AirLink*log.txt");
 			Console.WriteLine($"Found {monFiles.Length} monthly log files to process");
 			Utils.LogMessage($"AirLinkLogFile: Found {monFiles.Length} monthly log files to process");
 
@@ -93,7 +93,7 @@ namespace MigrateData3to4
 					// Get the date time so we can create the output filename
 					var date = Utils.DdmmyyhhmmStrToDate(fields[0], fields[1]);
 
-					var outFilename = Program.Dest + "/" + GetFilename(date, type);
+					var outFilename = Program.Dst + Path.DirectorySeparatorChar + GetFilename(date, type);
 
 					var cnt = WriteFileContents(inFile, outFilename, sepInp, endOfLine);
 
@@ -133,7 +133,7 @@ namespace MigrateData3to4
 			var lineNum = 0;
 			string inpLine;
 			StringBuilder outLine = new(512);
-			bool inDST;
+			bool inDST = true;
 			DateTime previousDate = DateTime.MinValue;
 
 			try
@@ -154,7 +154,8 @@ namespace MigrateData3to4
 						var date = Utils.DdmmyyhhmmStrToDate(fields[0], fields[1]);
 
 						// check if we are in standard time or DST
-						inDST = !TimeZoneInfo.Local.IsDaylightSavingTime(date);
+						if (lineNum == 0)
+							inDST = TimeZoneInfo.Local.IsDaylightSavingTime(date);
 
 						if (inDST && date < previousDate)
 						{

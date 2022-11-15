@@ -9,7 +9,7 @@ namespace MigrateData3to4
 	{
 
 		private static readonly string inpFilename = "data/dayfile.txt";
-		private static readonly string outFilename = Program.Dest + "/dayfile-v4.txt";
+		private static readonly string outFilename = Program.Dst + "/dayfile-v4.txt";
 
 
 		static internal void Convert()

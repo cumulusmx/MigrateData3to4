@@ -6,10 +6,10 @@ namespace MigrateData3to4
 {
 	class Program
 	{
-        public static string Src = "data";
-        public static string Dest = "datav4";
+		public static string Src = "data";
+		public static string Dst = "datav4";
 
-        static void Main()
+		static void Main()
 		{
 			TextWriterTraceListener myTextListener = new($"MXdiags{Path.DirectorySeparatorChar}MigrateData-{DateTime.Now:yyyyMMdd-HHmmss}.txt", "MDlog");
 			Trace.Listeners.Add(myTextListener);
@@ -30,7 +30,7 @@ namespace MigrateData3to4
 			Console.ForegroundColor = color;
 			Console.Write($"  New files will created in: ");
 			Console.ForegroundColor = ConsoleColor.Cyan;
-			Console.WriteLine(pwd + sep + Dest);
+			Console.WriteLine(pwd + sep + Dst);
 
 			Console.ForegroundColor = ConsoleColor.Yellow;
 			Console.WriteLine("\n  Any existing files in the output folder will be overwritten");
@@ -51,12 +51,12 @@ namespace MigrateData3to4
 			}
 
 
-            if (!Directory.Exists(Dest))
+			if (!Directory.Exists(Dst))
 			{
-				Utils.LogMessage($"Target folder '{Dest}' does not exist, creating it...");
-				Console.WriteLine($"Target folder '{Dest}' does not exist, creating it...");
+				Utils.LogMessage($"Target folder '{Dst}' does not exist, creating it...");
+				Console.WriteLine($"Target folder '{Dst}' does not exist, creating it...");
 
-				Directory.CreateDirectory(Dest);
+				Directory.CreateDirectory(Dst);
 			}
 
 			// Do the dayfile
@@ -64,6 +64,9 @@ namespace MigrateData3to4
 
 			// Do the monthly log files
 			LogFile.Convert();
+
+			// Do the ini files
+			IniFiles.Copy();
 
 			Utils.LogMessage("Processing completed");
 			Console.WriteLine($"\nProcessing completed: {DateTime.Now:U}\n");
