@@ -1,20 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Authors>Mark Crossley</Authors>
     <Company>Cumulus MX</Company>
     <Product>Cumulus MX Data Migration Utility</Product>
-    <AssemblyVersion>1.0.0.0004</AssemblyVersion>
-    <FileVersion>1.0.0.0004</FileVersion>
-    <Version></Version>
+    <AssemblyVersion>1.0.0.0005</AssemblyVersion>
+    <FileVersion>${AssemblyVersion}</FileVersion>
+    <Version>
+    </Version>
     <StartupObject>MigrateData3to4.Program</StartupObject>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
-
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="echo.&#xD;&#xA;echo Starting post-build tasks&#xD;&#xA;echo Update Distribution folder&#xD;&#xA;echo  - copy exe&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;xcopy &quot;$(OutputPath)\MigrateData3to4.exe&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo  - copy config&#xD;&#xA;xcopy &quot;$(OutputPath)\MigrateData3to4.runtimeconfig.json&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;" />
+  </Target>
 </Project>

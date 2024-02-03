@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace MigrateData3to4
 {
-	static class LogFile
+	static partial class LogFile
 	{
-
-		private enum FileType
-		{
-			Log,
-			ExtraLog,
-			AirLink
-		}
-
 		static internal void Convert()
 		{
 			// First do the Monthly log files
@@ -36,28 +26,35 @@ namespace MigrateData3to4
 			Utils.LogMessage("Migrating AirLink monthly log files");
 
 			DoAirLinkLogFiles();
+
+			// Now the Custom Monthly log files
+			Console.WriteLine("\nMigrating Custom monthly log files");
+			Utils.LogMessage("Migrating Custom monthly log files");
+
+			DoCustomMonthlyFiles();
 		}
 
 
 		private static void DoLogFiles()
 		{
 			// Get a list of the files using a regex
-			var reg = new Regex(@"[a-zA-Z]+[0-9]{2}log\.txt");
+			var reg = MonthlyLogFilesRegex();
 			var monFiles = Directory.GetFiles(Program.Src, "*log.txt").Where(path => reg.IsMatch(path)).ToArray();
 			Console.WriteLine($"Found {monFiles.Length} monthly log files to process");
 			Utils.LogMessage($"LogFile: Found {monFiles.Length} monthly log files to process");
 
-			DoFiles(monFiles, FileType.Log);
+			DoFiles(monFiles, true);
 		}
 
 		private static void DoExtraLogFiles()
 		{
 			// Get a list of the files
-			var monFiles = Directory.GetFiles(Program.Src, "Extra*.txt");
+			var reg = ExtraMonthlyLogFilesRegex();
+			var monFiles = Directory.GetFiles(Program.Src, "ExtraLog*.txt").Where(path => reg.IsMatch(path)).ToArray();
 			Console.WriteLine($"Found {monFiles.Length} monthly log files to process");
 			Utils.LogMessage($"ExtraLogFile: Found {monFiles.Length} monthly log files to process");
 
-			DoFiles(monFiles, FileType.ExtraLog);
+			DoFiles(monFiles);
 		}
 
 		private static void DoAirLinkLogFiles()
@@ -67,10 +64,21 @@ namespace MigrateData3to4
 			Console.WriteLine($"Found {monFiles.Length} monthly log files to process");
 			Utils.LogMessage($"AirLinkLogFile: Found {monFiles.Length} monthly log files to process");
 
-			DoFiles(monFiles, FileType.AirLink);
+			DoFiles(monFiles);
 		}
 
-		private static void DoFiles(string[] files, FileType type)
+		private static void DoCustomMonthlyFiles()
+		{
+			// Get a list of the files
+			var reg = CustomLogFilesRegex();
+			var monFiles = Directory.GetFiles(Program.Src, "*.txt").Where(path => reg.IsMatch(path)).ToArray();
+			Console.WriteLine($"Found {monFiles.Length} custom monthly log files to process");
+			Utils.LogMessage($"CustomMonthly: Found {monFiles.Length} custom monthly log files to process");
+
+			DoFiles(monFiles);
+		}
+
+		public static void DoFiles(string[] files, bool monthly = false)
 		{
 			foreach (var inFile in files)
 			{
@@ -79,26 +87,10 @@ namespace MigrateData3to4
 
 				try
 				{
-					// read the first line to determine format
-					var line1 = File.ReadLines(inFile).First();
-					char sepInp = Utils.GetLogFileSeparator(line1, ',');
-					Utils.LogMessage($"File {inFile} is using the separator: {sepInp}");
-
-					Utils.TryDetectNewLine(inFile, out string endOfLine);
-					Utils.LogMessage($"File {inFile} is using the line ending: {(endOfLine == "\n" ? "\\n" : "\\r\\n")}");
-
-					// Split the line
-					var fields = line1.Split(sepInp);
-
-					// Get the date time so we can create the output filename
-					var date = Utils.DdmmyyhhmmStrToDate(fields[0], fields[1]);
-
-					var outFilename = Program.Dst + Path.DirectorySeparatorChar + GetFilename(date, type);
-
-					var cnt = WriteFileContents(inFile, outFilename, sepInp, endOfLine);
+					var cnt = WriteFileContents(inFile, monthly);
 
 					Console.WriteLine("done.");
-					Utils.LogMessage($"Finished processing file {inFile}, lines processed = {cnt}");
+					Utils.LogMessage($"Finished writing to file, lines processed = {cnt}");
 				}
 				catch (Exception ex)
 				{
@@ -108,92 +100,77 @@ namespace MigrateData3to4
 
 		}
 
-		private static string GetFilename(DateTime date, FileType type)
-		{
-			if (type == FileType.Log)
-				return Utils.GetLogFileName(date);
-			else if (type == FileType.ExtraLog)
-				return Utils.GetExtraLogFileName(date);
-			else
-				return Utils.GetAirLinkLogFileName(date);
-		}
-
 
 		/// <summary>
 		/// All new log files have the same internal format for the first two fields, this copies input to output
 		/// </summary>
 		/// <param name="date"></param>
 		/// <param name="inpFile"></param>
-		/// <param name="outFile"></param>
-		/// <param name="sep"></param>
-		/// <param name="eol"></param>
+		/// <param name="monthly"></param>
 		/// <returns>Count of the lines processed</returns>
-		private static int WriteFileContents(string inpFile, string outFile, char sep, string eol)
+		private static int WriteFileContents(string inpFile, bool monthly=false)
 		{
-			var lineNum = 0;
-			string inpLine;
-			StringBuilder outLine = new(512);
-			bool inDST = true;
-			DateTime previousDate = DateTime.MinValue;
+			var lineNum = 1;
+			string outFile;
 
 			try
 			{
-				using (var sr = new StreamReader(inpFile))
-				using (var sw = new StreamWriter(outFile))
+				// read the first line to determine format
+				var lines = File.ReadLines(inpFile).ToArray();
+				char sepInp = Utils.GetLogFileSeparator(lines[0], ',');
+				Utils.LogMessage($"LogFile: File is using the separator: {sepInp}");
+
+				Utils.TryDetectNewLine(inpFile, out string endOfLine);
+				Utils.LogMessage($"LogFile: File {inpFile} is using the line ending: {(endOfLine == "\n" ? "\\n" : "\\r\\n")}");
+
+				if (monthly)
 				{
-					sw.NewLine = eol;
-
-					while ((inpLine = sr.ReadLine()) != null)
-					{
-						// Reset the string builder
-						outLine.Length = 0;
-
-						var fields = inpLine.Split(sep);
-
-						// get the date and time
-						var date = Utils.DdmmyyhhmmStrToDate(fields[0], fields[1]);
-
-						// check if we are in standard time or DST
-						if (lineNum == 0)
-							inDST = TimeZoneInfo.Local.IsDaylightSavingTime(date);
-
-						if (inDST && date < previousDate)
-						{
-							inDST = false;
-						}
-						previousDate= date;
-
-						var utcDate = Utils.ResolveAmbiguousTime(date, inDST);
-
-						outLine.Append(date.ToString("dd/MM/yy HH:mm", CultureInfo.InvariantCulture.DateTimeFormat));
-						outLine.Append(',');
-						outLine.Append(Utils.ToUnixTime(utcDate));
-						outLine.Append(',');
-
-						// do the rest of the fields, converting comma decimals to dot
-						foreach (var field in fields.Skip(2))
-						{
-							outLine.Append(field.Replace(',', '.'));
-							outLine.Append(',');
-						}
-
-						// remove the last ','
-						outLine.Length--;
-
-						// Write the output
-						sw.WriteLine(outLine);
-
-						lineNum++;
-					};
+					outFile = Program.Dst + Path.DirectorySeparatorChar + "Month" + Utils.DdmmyyStrToDate(lines[0].Split(sepInp)[0]).ToString("yyyyMM") + "log.txt";
 				}
+				else
+				{
+					outFile = Program.Dst + Path.DirectorySeparatorChar + inpFile.Split(Path.DirectorySeparatorChar).Last();
+				}
+
+				using var sw = new StreamWriter(outFile) { NewLine = endOfLine };
+
+				foreach (var inpLine in lines)
+				{
+					var fields = inpLine.Split(sepInp);
+
+					// Do the date
+					fields[0] = Utils.DdmmyyStrToStr(fields[0]);
+
+					// do the rest of the fields, converting comma decimals to dot
+					for (var i = 1; i < fields.Length; i++)
+					{
+						fields[i] = fields[i].Replace(',', '.');
+					}
+
+					// Write the output
+					sw.WriteLine(string.Join(',', fields));
+
+					lineNum++;
+				}
+				sw.Flush();
+				sw.Close();
 			}
 			catch (Exception ex)
 			{
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine($"Error at line {lineNum + 1} - {ex.Message}\n");
+				Console.WriteLine($"Error at line {lineNum} - {ex.Message}\n");
 				Console.ResetColor();
 			}
-			return lineNum;
+			return lineNum - 1;
 		}
+
+		[GeneratedRegex(@"\w{3}[0-9]{2}log\.txt")]
+		private static partial Regex MonthlyLogFilesRegex();
+
+		[GeneratedRegex(@"ExtraLog20[0-9]{4}\.txt")]
+		private static partial Regex ExtraMonthlyLogFilesRegex();
+
+		[GeneratedRegex(@".+-20[0-9]{4}\.txt")]
+		private static partial Regex CustomLogFilesRegex();
 	}
 }

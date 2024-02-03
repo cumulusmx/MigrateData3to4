@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace MigrateData3to4
 {
@@ -9,12 +8,12 @@ namespace MigrateData3to4
 	{
 
 		private static readonly string inpFilename = Program.Src + Path.DirectorySeparatorChar + "dayfile.txt";
-		private static readonly string outFilename = Program.Dst + Path.DirectorySeparatorChar + "dayfile-v4.txt";
+		private static readonly string outFilename = Program.Dst + Path.DirectorySeparatorChar + "dayfile.txt";
 
 
 		static internal void Convert()
 		{
-			Console.WriteLine($"Migrating dayfile.txt to {outFilename}");
+			Console.WriteLine($"Migrating v3 dayfile.txt to {outFilename}");
 
 			if (File.Exists(inpFilename))
 			{
@@ -27,68 +26,46 @@ namespace MigrateData3to4
 				return;
 			}
 
-			if (File.Exists(outFilename + ".sav"))
-			{
-				Console.WriteLine("Dayfile: The dayfile.txt backup file dayfile-v4.txt.sav already exists, aborting to prevent overwriting the original data.");
-				Utils.LogMessage("Dayfile: The dayfile.txt backup file dayfile-v4.txt.sav already exists, aborting to prevent overwriting the original data.");
-				Console.WriteLine("Press any key to exit");
-				Console.ReadKey(true);
-				Console.WriteLine("Exiting...");
-				Environment.Exit(1);
-			}
-
 			var lineNum = 1;
-			string inpLine;
-			StringBuilder outLine = new(512);
 
 			try
 			{
 
 				// read the first line to determine format
-				var line1 = File.ReadLines(inpFilename).First();
-				char sepInp = Utils.GetLogFileSeparator(line1, ',');
+				var lines = File.ReadLines(inpFilename).ToArray();
+				char sepInp = Utils.GetLogFileSeparator(lines[0], ',');
 				Utils.LogMessage($"LogFile: File {inpFilename} is using the separator: {sepInp}");
 
 				Utils.TryDetectNewLine(inpFilename, out string endOfLine);
 				Utils.LogMessage($"LogFile: File {inpFilename} is using the line ending: {(endOfLine == "\n" ? "\\n" : "\\r\\n")}");
 
-				using var sr = new StreamReader(inpFilename);
-				using var sw = new StreamWriter(outFilename);
-				sw.NewLine = endOfLine;
+				using var sw = new StreamWriter(outFilename) { NewLine = endOfLine };
 
-				while ((inpLine = sr.ReadLine()) != null)
+				foreach (var inpLine in lines)
 				{
-					// Reset the string builder
-					outLine.Length = 0;
-
 					var fields = inpLine.Split(sepInp);
 
 					// Do the date
-					outLine.Append(Utils.DdmmyyStrToStr(fields[0]));
-					outLine.Append(',');
-					// Do the Unix timestamp
-					outLine.Append(Utils.ToUnixTime(Utils.DdmmyyStrToDate(fields[0])));
-					outLine.Append(',');
+					fields[0] = Utils.DdmmyyStrToStr(fields[0]);
+
 					// do the rest of the fields, converting comma decimals to dot
-					foreach (var field in fields.Skip(1))
+					for (var i = 1; i < fields.Length; i++)
 					{
-						outLine.Append(field.Replace(',', '.'));
-						outLine.Append(',');
+						fields[i] = fields[i].Replace(',', '.');
 					}
 
-					// remove the last ','
-					outLine.Length--;
-
 					// Write the output
-					sw.WriteLine(outLine);
+					sw.WriteLine(string.Join(',', fields));
 
 					lineNum++;
-				};
+				}
+				sw.Flush();
+				sw.Close();
 			}
 			catch (Exception ex)
 			{
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine($"Error at line {lineNum} - {ex.Message}\n" );
+				Console.WriteLine($"Error at line {lineNum} - {ex.Message}\n");
 				Console.ResetColor();
 			}
 		}

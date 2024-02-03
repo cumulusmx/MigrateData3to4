@@ -59,7 +59,7 @@ namespace MigrateData3to4
 			// Determine separators from the strings, allow for multi-byte!
 			var datSep = Regex.Match(d, @"[^0-9]+").Value;
 
-			// Converts a date string in UK order to a DateTime
+			// Converts a date string in UK order to a string
 			string[] date = d.Split(new string[] { datSep }, StringSplitOptions.None);
 
 			return date[0] + "/" + date[1] + "/" + date[2];
