@@ -5,12 +5,12 @@
     <Authors>Mark Crossley</Authors>
     <Company>Cumulus MX</Company>
     <Product>Cumulus MX Data Migration Utility</Product>
-    <AssemblyVersion>1.0.0.0005</AssemblyVersion>
-    <FileVersion>${AssemblyVersion}</FileVersion>
-    <Version>
-    </Version>
+    <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
+    <FileVersion>$(PackageVersion)</FileVersion>
+    <Version>1.0.0.0005</Version>
     <StartupObject>MigrateData3to4.Program</StartupObject>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+    <Copyright>Copyright ©  2023-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>none</DebugType>
