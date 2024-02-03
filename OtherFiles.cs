@@ -10,7 +10,7 @@ namespace MigrateData3to4
 	{
 		static internal void Copy()
 		{
-			string[] files = {
+			string[] files = [
 				"alltime.ini",
 				"month.ini",
 				"monthlyalltime.ini",
@@ -19,7 +19,7 @@ namespace MigrateData3to4
 				"yesterday.ini",
 				"cumulusmx.db",
 				"diary.db"
-			};
+			];
 			var fileSep = Path.DirectorySeparatorChar;
 
 			Console.WriteLine("\nCopying 'other' files");
