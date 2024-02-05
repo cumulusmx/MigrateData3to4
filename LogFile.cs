@@ -125,7 +125,7 @@ namespace MigrateData3to4
 
 				if (monthly)
 				{
-					outFile = Program.Dst + Path.DirectorySeparatorChar + "Month" + Utils.DdmmyyStrToDate(lines[0].Split(sepInp)[0]).ToString("yyyyMM") + "log.txt";
+					outFile = Program.Dst + Path.DirectorySeparatorChar + Utils.DdmmyyStrToDate(lines[0].Split(sepInp)[0]).ToString("yyyyMM") + "log.txt";
 				}
 				else
 				{
