@@ -158,7 +158,9 @@ namespace MigrateData3to4
 			catch (Exception ex)
 			{
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine($"Error at line {lineNum} - {ex.Message}\n");
+				Console.WriteLine($"Error at line {lineNum} - {ex.Message}");
+				Console.WriteLine($"Please fix the file {inpFile} at line {lineNum} and try the migration again\n");
+
 				Console.ResetColor();
 			}
 			return lineNum - 1;
