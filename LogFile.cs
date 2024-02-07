@@ -165,7 +165,7 @@ namespace MigrateData3to4
 						}
 						else
 						{
-							Console.WriteLine($"  reapired corrupt line {i + 1}");
+							Console.WriteLine($"  repaired corrupt line {i + 1}");
 							Utils.LogMessage($"LogFile: File {inpFile} repaired corrupt line {i + 1}");
 							line = repLine;
 						}
