@@ -150,23 +150,23 @@ namespace MigrateData3to4
 
 				using var sw = new StreamWriter(outFile) { NewLine = endOfLine };
 
-				for (var i =0; i < lines.Length; i++)
+				for (var l =0; l < lines.Length; l++)
 				{
-					var line = lines[i];
+					var line = lines[l];
 
 					if (line[0] < 32)
 					{
 						var repLine = RepairLine(line, sepInp, fieldCount);
 						if (repLine == null)
 						{
-							Console.WriteLine($"  deleted corrupt line {i + 1}");
-							Utils.LogMessage($"LogFile: File {inpFile} deleted corrupt line {i+1}");
+							Console.WriteLine($"  deleted corrupt line {l + 1}");
+							Utils.LogMessage($"LogFile: File {inpFile} deleted corrupt line {l +1}");
 							continue;
 						}
 						else
 						{
-							Console.WriteLine($"  repaired corrupt line {i + 1}");
-							Utils.LogMessage($"LogFile: File {inpFile} repaired corrupt line {i + 1}");
+							Console.WriteLine($"  repaired corrupt line {l + 1}");
+							Utils.LogMessage($"LogFile: File {inpFile} repaired corrupt line {l + 1}");
 							line = repLine;
 						}
 					}
