@@ -87,7 +87,7 @@ namespace MigrateData3to4
 				Console.WriteLine("\nMigrating Custom daily log files");
 				Utils.LogMessage("Migrating Custom daily log files");
 
-				LogFile.DoFiles(custDaily.ToArray());
+				LogFile.DoFiles(custDaily.ToArray(), LogFile.FileType.Dayfile);
 			}
 
 			// Do the static other files
