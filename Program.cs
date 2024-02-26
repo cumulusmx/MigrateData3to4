@@ -5,11 +5,10 @@ using System.IO;
 
 namespace MigrateData3to4
 {
-	class Program
+	static class Program
 	{
-		public static string Src = "datav3";
-		public static string Dst = "data";
-		public static List<string> custDaily = [];
+		public const string Src = "datav3";
+		public const  string Dst = "data";
 
 		static void Main(string[] args)
 		{
@@ -22,8 +21,8 @@ namespace MigrateData3to4
 			Utils.LogMessage("MigrateData v." + version);
 			Console.WriteLine("MigrateData v." + version);
 
-			// Have any custom daily files been supplied
-
+			// Have any custom daily files been supplied - we cannot pick them up automatically as they can have any free-format filename
+			List<string> custDaily = [];
 			for (int i = 0; i < args.Length; i++)
 			{
 				custDaily.Add(args[i]);

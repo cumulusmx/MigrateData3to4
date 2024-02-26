@@ -145,7 +145,7 @@ namespace MigrateData3to4
 				}
 				else
 				{
-					outFile = Program.Dst + Path.DirectorySeparatorChar + inpFile.Split(Path.DirectorySeparatorChar).Last();
+					outFile = Program.Dst + Path.DirectorySeparatorChar + inpFile.Split(Path.DirectorySeparatorChar)[^1];
 				}
 
 				using var sw = new StreamWriter(outFile) { NewLine = endOfLine };

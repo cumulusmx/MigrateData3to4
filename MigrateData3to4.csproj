@@ -7,7 +7,7 @@
     <Product>Cumulus MX Data Migration Utility</Product>
     <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
     <FileVersion>$(PackageVersion)</FileVersion>
-    <Version>1.0.0.0006</Version>
+    <Version>1.0.0.0007</Version>
     <StartupObject>MigrateData3to4.Program</StartupObject>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
     <Copyright>Copyright ©  2023-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
