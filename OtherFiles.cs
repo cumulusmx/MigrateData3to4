@@ -72,7 +72,7 @@ namespace MigrateData3to4
 			{
 				try
 				{
-					var dst = Program.Dst + Path.DirectorySeparatorChar + file.Split(Path.DirectorySeparatorChar).Last();
+					var dst = Program.Dst + Path.DirectorySeparatorChar + file.Split(Path.DirectorySeparatorChar)[^1];
 					var col = Console.ForegroundColor;
 					Console.Write($"Copying {file} to destination... ");
 					Utils.LogMessage($"Copying {file} to destination");

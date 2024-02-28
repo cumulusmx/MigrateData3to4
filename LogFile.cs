@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
+
 
 namespace MigrateData3to4
 {
@@ -14,7 +15,7 @@ namespace MigrateData3to4
 		const int DayfileFields = 55;
 
 
-		static internal void Convert()
+		static internal void Convert(CustLogs custLogs)
 		{
 			// First do the Monthly log files
 			Console.WriteLine("\nMigrating monthly log files");
@@ -38,7 +39,13 @@ namespace MigrateData3to4
 			Console.WriteLine("\nMigrating Custom monthly log files");
 			Utils.LogMessage("Migrating Custom monthly log files");
 
-			DoCustomMonthlyFiles();
+			DoCustomMonthlyFiles(custLogs);
+
+			// Now the Custom Monthly log files
+			Console.WriteLine("\nMigrating Custom daily log files");
+			Utils.LogMessage("Migrating Custom daily log files");
+
+			DoCustomDailyFiles(custLogs);
 		}
 
 
@@ -46,11 +53,20 @@ namespace MigrateData3to4
 		{
 			// Get a list of the files using a regex
 			var reg = MonthlyLogFilesRegex();
-			var monFiles = Directory.GetFiles(Program.Src, "*log.txt").Where(path => reg.IsMatch(path)).ToArray();
-			Console.WriteLine($"Found {monFiles.Length} monthly log files to process");
-			Utils.LogMessage($"LogFile: Found {monFiles.Length} monthly log files to process");
+			var monFiles = Directory.GetFiles(Program.Src, "*log.txt");
+			List<string> logFiles = [];
 
-			DoFiles(monFiles, FileType.Monthly);
+			foreach (string file in monFiles)
+			{
+				if (reg.IsMatch(Path.GetFileName(file)))
+				{
+					logFiles.Add(file);
+				}
+			}
+			Console.WriteLine($"Found {logFiles.Count} monthly log files to process");
+			Utils.LogMessage($"LogFile: Found {logFiles.Count} monthly log files to process");
+
+			DoFiles(logFiles.ToArray(), FileType.Monthly);
 		}
 
 		private static void DoExtraLogFiles()
@@ -58,7 +74,7 @@ namespace MigrateData3to4
 			// Get a list of the files
 			var reg = ExtraMonthlyLogFilesRegex();
 			var monFiles = Directory.GetFiles(Program.Src, "ExtraLog*.txt").Where(path => reg.IsMatch(path)).ToArray();
-			Console.WriteLine($"Found {monFiles.Length} monthly log files to process");
+			Console.WriteLine($"Found {monFiles.Length} monthly Extra log files to process");
 			Utils.LogMessage($"ExtraLogFile: Found {monFiles.Length} monthly log files to process");
 
 			DoFiles(monFiles, FileType.Extra);
@@ -68,22 +84,48 @@ namespace MigrateData3to4
 		{
 			// Get a list of the files
 			var monFiles = Directory.GetFiles(Program.Src, "AirLink*log.txt");
-			Console.WriteLine($"Found {monFiles.Length} monthly log files to process");
+			Console.WriteLine($"Found {monFiles.Length} monthly AirLink log files to process");
 			Utils.LogMessage($"AirLinkLogFile: Found {monFiles.Length} monthly log files to process");
 
 			DoFiles(monFiles, FileType.AirLink);
 		}
 
-		private static void DoCustomMonthlyFiles()
+		private static void DoCustomMonthlyFiles(CustLogs custLogs)
 		{
-			// Get a list of the files
-			var reg = CustomLogFilesRegex();
-			var monFiles = Directory.GetFiles(Program.Src, "*.txt").Where(path => reg.IsMatch(path)).ToArray();
-			Console.WriteLine($"Found {monFiles.Length} custom monthly log files to process");
-			Utils.LogMessage($"CustomMonthly: Found {monFiles.Length} custom monthly log files to process");
+			if (custLogs.IntvLogs.Count == 0)
+			{
+				Console.WriteLine("\nNo Custom interval log files defined in Cumulus.ini");
+				Utils.LogMessage("No Custom interval log files defined in Cumulus.ini");
+			}
+			else
+			{
+				// Interval log file names are templates, we need to filnd all the files
+				foreach (var file in custLogs.IntvLogs)
+				{
+					var reg = new Regex(file + @"-20[0-9]{4}\.txt");
+					var monFiles = Directory.GetFiles(Program.Src, "*.txt").Where(path => reg.IsMatch(path)).ToArray();
 
-			DoFiles(monFiles, FileType.Custom);
+					Console.WriteLine($" Found {monFiles.Length} custom monthly log files matching \"{file}\" to process");
+					Utils.LogMessage($"CustomMonthly: Found {monFiles.Length} custom monthly log files matching \"{file}\" to process");
+
+					DoFiles(monFiles, FileType.CustomIntv);
+				}
+			}
 		}
+
+		private static void DoCustomDailyFiles(CustLogs custLogs)
+		{
+			if (custLogs.DailyLogs.Count == 0)
+			{
+				Console.WriteLine("\nNo Custom daily log files defined in Cumulus.ini");
+				Utils.LogMessage("No Custom daily log files defined in Cumulus.ini");
+			}
+			else
+			{
+				DoFiles(custLogs.DailyLogs.ToArray(), FileType.CustomDaily);
+			}
+		}
+
 
 		public static void DoFiles(string[] files, FileType fileType)
 		{
@@ -131,13 +173,16 @@ namespace MigrateData3to4
 
 			try
 			{
+				// Custom daily files are just the bare filename
+				if (fileType == FileType.CustomDaily)
+				{
+					inpFile = Program.Src + Path.DirectorySeparatorChar + inpFile;
+				}
+
 				// read the first line to determine format
 				var lines = File.ReadLines(inpFile).ToArray();
 				char sepInp = Utils.GetLogFileSeparator(lines[0], ',');
 				Utils.LogMessage($"LogFile: File is using the separator: {sepInp}");
-
-				Utils.TryDetectNewLine(inpFile, out string endOfLine);
-				Utils.LogMessage($"LogFile: File {inpFile} is using the line ending: {(endOfLine == "\n" ? "\\n" : "\\r\\n")}");
 
 				if (fileType == FileType.Monthly)
 				{
@@ -148,13 +193,18 @@ namespace MigrateData3to4
 					outFile = Program.Dst + Path.DirectorySeparatorChar + inpFile.Split(Path.DirectorySeparatorChar)[^1];
 				}
 
+				Utils.LogMessage($"LogFile: File {inpFile} will be written to {outFile}");
+				Utils.TryDetectNewLine(inpFile, out string endOfLine);
+				Utils.LogMessage($"LogFile: File {inpFile} is using the line ending: {(endOfLine == "\n" ? "\\n" : "\\r\\n")}");
+
+
 				using var sw = new StreamWriter(outFile) { NewLine = endOfLine };
 
 				for (var l =0; l < lines.Length; l++)
 				{
 					var line = lines[l];
 
-					if (line[0] < 32)
+					if (fileType != FileType.CustomIntv && fileType != FileType.CustomDaily && line[0] < 32)
 					{
 						var repLine = RepairLine(line, sepInp, fieldCount);
 						if (repLine == null)
@@ -189,6 +239,14 @@ namespace MigrateData3to4
 				}
 				sw.Flush();
 				sw.Close();
+			}
+			catch (FileNotFoundException)
+			{
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine($"File not found: {inpFile}");
+				Console.WriteLine($"File not found: {inpFile}\n");
+
+				Console.ResetColor();
 			}
 			catch (Exception ex)
 			{
@@ -237,17 +295,15 @@ namespace MigrateData3to4
 			Monthly = 0,
 			Extra = 1,
 			AirLink = 2,
-			Custom = 3,
-			Dayfile = 4
+			Dayfile = 3,
+			CustomIntv = 4,
+			CustomDaily = 5
 		}
 
-		[GeneratedRegex(@"\w{3}[0-9]{2}log\.txt")]
+		[GeneratedRegex(@"^\w{3}[0-9]{2}log\.txt")]
 		private static partial Regex MonthlyLogFilesRegex();
 
 		[GeneratedRegex(@"ExtraLog20[0-9]{4}\.txt")]
 		private static partial Regex ExtraMonthlyLogFilesRegex();
-
-		[GeneratedRegex(@".+-20[0-9]{4}\.txt")]
-		private static partial Regex CustomLogFilesRegex();
 	}
 }

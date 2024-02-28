@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace MigrateData3to4
 {
@@ -10,7 +12,7 @@ namespace MigrateData3to4
 		public const string Src = "datav3";
 		public const  string Dst = "data";
 
-		static void Main(string[] args)
+		static void Main()
 		{
 			TextWriterTraceListener myTextListener = new($"MXdiags{Path.DirectorySeparatorChar}MigrateData-{DateTime.Now:yyyyMMdd-HHmmss}.txt", "MDlog");
 			Trace.Listeners.Add(myTextListener);
@@ -21,13 +23,7 @@ namespace MigrateData3to4
 			Utils.LogMessage("MigrateData v." + version);
 			Console.WriteLine("MigrateData v." + version);
 
-			// Have any custom daily files been supplied - we cannot pick them up automatically as they can have any free-format filename
-			List<string> custDaily = [];
-			for (int i = 0; i < args.Length; i++)
-			{
-				custDaily.Add(args[i]);
-			}
-
+			var custLogs = new CustLogs();
 
 			var pwd = Directory.GetCurrentDirectory();
 			var color = Console.ForegroundColor;
@@ -72,22 +68,7 @@ namespace MigrateData3to4
 			DayFile.Convert();
 
 			// Do the monthly log files
-			LogFile.Convert();
-
-			// Finally the custom daily log files
-			if (custDaily.Count == 0)
-			{
-				Console.WriteLine("\nNo Custom daily log files supplied");
-				Utils.LogMessage("No Custom daily log files supplied");
-			}
-			else
-			{
-
-				Console.WriteLine("\nMigrating Custom daily log files");
-				Utils.LogMessage("Migrating Custom daily log files");
-
-				LogFile.DoFiles(custDaily.ToArray(), LogFile.FileType.Dayfile);
-			}
+			LogFile.Convert(custLogs);
 
 			// Do the static other files
 			OtherFiles.Copy();
