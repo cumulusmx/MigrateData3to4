@@ -11,6 +11,8 @@ namespace MigrateData3to4
 	{
 		public const string Src = "datav3";
 		public const  string Dst = "data";
+		public static char sepField;
+		public static char sepTime;
 
 		static void Main()
 		{

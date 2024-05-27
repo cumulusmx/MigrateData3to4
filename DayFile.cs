@@ -30,11 +30,21 @@ namespace MigrateData3to4
 
 			try
 			{
-
 				// read the first line to determine format
 				var lines = File.ReadLines(inpFilename).ToArray();
-				char sepInp = Utils.GetLogFileSeparator(lines[0], ',');
-				Utils.LogMessage($"LogFile: File {inpFilename} is using the separator: {sepInp}");
+				Program.sepField = Utils.GetLogFileSeparator(lines[0], ',');
+				Utils.LogMessage($"LogFile: File {inpFilename} is using the separator: {Program.sepField}");
+
+				Program.sepTime = Utils.GetDayFileTimeSeparator(lines[0], ':');
+				Utils.LogMessage($"LogFile: File is using the time separator: {Program.sepTime}");
+
+				if (Program.sepTime != ':')
+				{
+					for (var i = 0; i < lines.Length; i++)
+					{
+						lines[i] = lines[i].Replace(Program.sepTime, ':');
+					}
+				}
 
 				Utils.TryDetectNewLine(inpFilename, out string endOfLine);
 				Utils.LogMessage($"LogFile: File {inpFilename} is using the line ending: {(endOfLine == "\n" ? "\\n" : "\\r\\n")}");
@@ -43,7 +53,7 @@ namespace MigrateData3to4
 
 				foreach (var inpLine in lines)
 				{
-					var fields = inpLine.Split(sepInp);
+					var fields = inpLine.Split(Program.sepField);
 
 					// Do the date
 					fields[0] = Utils.DdmmyyStrToStr(fields[0]);

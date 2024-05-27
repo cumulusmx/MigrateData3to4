@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace MigrateData3to4
 {
-	static class Utils
+	static partial class Utils
 	{
 		internal static void LogMessage(string message)
 		{
@@ -18,7 +18,31 @@ namespace MigrateData3to4
 			// dd/MM/yy,hh:mm,N.N,....
 			// so we just need to find the first separator after the date before a number
 
-			var reg = Regex.Match(line, @"\d{2}[^\d]+\d{2}[^\d]+\d{2}([^\d])");
+			var reg = LogFileSeparatorRegex().Match(line);
+			if (reg.Success)
+				return reg.Groups[1].Value[0];
+			else
+				return defSep;
+		}
+
+		internal static char GetDayFileTimeSeparator(string line, char defSep)
+		{
+			// we know the dayfile starts with
+			// dd/MM/yy,NN,NN,hh:mm,...
+			// so we just need to find the first separator after the first three fields and before a number
+			var reg = DayFileTimeSeparatorRegex().Match(line);
+			if (reg.Success)
+				return reg.Groups[1].Value[0];
+			else
+				return defSep;
+		}
+
+		internal static char GetLogFileTimeSeparator(string line, char defSep)
+		{
+			// we know the monthly log files start with
+			// dd/MM/yy,hh:mm,N.N,....
+			// so we just need to find the first separator after the date and hour and before a number
+			var reg = LogFileTimeSeparatorRegex().Match(line);
 			if (reg.Success)
 				return reg.Groups[1].Value[0];
 			else
@@ -57,7 +81,7 @@ namespace MigrateData3to4
 		{
 			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
 			// Determine separators from the strings, allow for multi-byte!
-			var datSep = Regex.Match(d, @"[^0-9]+").Value;
+			var datSep = DateOrTimeSeparatorRegex().Match(d).Value;
 
 			// Converts a date string in UK order to a string
 			string[] date = d.Split(new string[] { datSep }, StringSplitOptions.None);
@@ -69,7 +93,7 @@ namespace MigrateData3to4
 		{
 			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
 			// Determine separators from the strings, allow for multi-byte!
-			var datSep = Regex.Match(d, @"[^0-9]+").Value;
+			var datSep = DateOrTimeSeparatorRegex().Match(d).Value;
 
 			// Converts a date string in UK order to a DateTime
 			string[] date = d.Split(new string[] { datSep }, StringSplitOptions.None);
@@ -93,8 +117,8 @@ namespace MigrateData3to4
 		{
 			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
 			// Determine separators from the strings, allow for multi-byte!
-			var datSep = Regex.Match(d, @"[^0-9]+").Value;
-			var timSep = Regex.Match(t, @"[^0-9]+").Value;
+			var datSep = DateOrTimeSeparatorRegex().Match(d).Value;
+			var timSep = DateOrTimeSeparatorRegex().Match(t).Value;
 
 			// Converts a date string in UK order to a DateTime
 			string[] date = d.Split(new string[] { datSep }, StringSplitOptions.None);
@@ -169,5 +193,17 @@ namespace MigrateData3to4
 				return DateTime.SpecifyKind(ambiguousTime - offset, DateTimeKind.Utc);
 			}
 		}
+
+		[GeneratedRegex(@"\d{2}[^\d]+\d{2}[^\d]+\d{2}([^\d])")]
+		private static partial Regex LogFileSeparatorRegex();
+
+		[GeneratedRegex(@"\d{2}[^\d]+\d{2}[^\d]+\d{2}[^\d]+\d+[^\d]+\d+[^\d]+\d+[^\d]+\d{2}([^\d])")]
+		private static partial Regex DayFileTimeSeparatorRegex();
+
+		[GeneratedRegex(@"\d{2}[^\d]+\d{2}[^\d]+\d{2}[^\d]{1}\d{2}([^\d])")]
+		private static partial Regex LogFileTimeSeparatorRegex();
+
+		[GeneratedRegex(@"[^\d]+")]
+		private static partial Regex DateOrTimeSeparatorRegex();
 	}
 }

@@ -136,14 +136,25 @@ namespace MigrateData3to4
 
 				try
 				{
-					var cnt = WriteFileContents(inFile, fileType);
+					if (File.Exists(inFile))
+					{
+						var cnt = WriteFileContents(inFile, fileType);
 
-					Console.WriteLine("done.");
-					Utils.LogMessage($"Finished writing to file, lines processed = {cnt}");
+						Console.WriteLine("done.");
+						Utils.LogMessage($"Finished writing to file, lines processed = {cnt}");
+					}
+					else
+					{
+						Console.ForegroundColor = ConsoleColor.Red;
+						Console.WriteLine("File not found.");
+						Utils.LogMessage($"File not found {inFile}");
+						Console.ResetColor();
+					}
 				}
 				catch (Exception ex)
 				{
 					Console.WriteLine($"Error processing log file - {ex.Message}\n");
+					Utils.LogMessage($"Error processing log {inFile} file - {ex.Message}\n");
 				}
 			}
 
@@ -181,12 +192,27 @@ namespace MigrateData3to4
 
 				// read the first line to determine format
 				var lines = File.ReadLines(inpFile).ToArray();
-				char sepInp = Utils.GetLogFileSeparator(lines[0], ',');
-				Utils.LogMessage($"LogFile: File is using the separator: {sepInp}");
+				Program.sepField = Utils.GetLogFileSeparator(lines[0], ',');
+				Utils.LogMessage($"LogFile: File is using the field separator: {Program.sepField}");
+
+				if (fileType != FileType.CustomDaily)
+				{
+					Program.sepTime = Utils.GetLogFileTimeSeparator(lines[0], ':');
+				}
+				Utils.LogMessage($"LogFile: File is using the time separator: {Program.sepTime}");
+
+				if (Program.sepTime != ':')
+				{
+					for (var i = 0; i < lines.Length; i++)
+					{
+						lines[i] = lines[i].Replace(Program.sepTime, ':');
+					}
+				}
+
 
 				if (fileType == FileType.Monthly)
 				{
-					outFile = Program.Dst + Path.DirectorySeparatorChar + Utils.DdmmyyStrToDate(lines[0].Split(sepInp)[0]).ToString("yyyyMM") + "log.txt";
+					outFile = Program.Dst + Path.DirectorySeparatorChar + Utils.DdmmyyStrToDate(lines[0].Split(Program.sepField)[0]).ToString("yyyyMM") + "log.txt";
 				}
 				else
 				{
@@ -206,7 +232,7 @@ namespace MigrateData3to4
 
 					if (fileType != FileType.CustomIntv && fileType != FileType.CustomDaily && line[0] < 32)
 					{
-						var repLine = RepairLine(line, sepInp, fieldCount);
+						var repLine = RepairLine(line, Program.sepField, fieldCount);
 						if (repLine == null)
 						{
 							Console.WriteLine($"  deleted corrupt line {l + 1}");
@@ -221,7 +247,7 @@ namespace MigrateData3to4
 						}
 					}
 
-					var fields = line.Split(sepInp);
+					var fields = line.Split(Program.sepField);
 
 					// Do the date
 					fields[0] = Utils.DdmmyyStrToStr(fields[0]);
@@ -300,7 +326,7 @@ namespace MigrateData3to4
 			CustomDaily = 5
 		}
 
-		[GeneratedRegex(@"^\w{3}[0-9]{2}log\.txt")]
+		[GeneratedRegex(@"^\w{3,6}[0-9]{2}log\.txt")]
 		private static partial Regex MonthlyLogFilesRegex();
 
 		[GeneratedRegex(@"ExtraLog20[0-9]{4}\.txt")]
