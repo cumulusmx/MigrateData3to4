@@ -326,10 +326,10 @@ namespace MigrateData3to4
 			CustomDaily = 5
 		}
 
-		[GeneratedRegex(@"^\w{3,6}[0-9]{2}log\.txt")]
+		[GeneratedRegex(@"^\D+[\d]{2}log\.txt")]
 		private static partial Regex MonthlyLogFilesRegex();
 
-		[GeneratedRegex(@"ExtraLog20[0-9]{4}\.txt")]
+		[GeneratedRegex(@"ExtraLog20[\d]{4}\.txt")]
 		private static partial Regex ExtraMonthlyLogFilesRegex();
 	}
 }
