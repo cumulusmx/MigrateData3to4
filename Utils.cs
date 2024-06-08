@@ -194,13 +194,13 @@ namespace MigrateData3to4
 			}
 		}
 
-		[GeneratedRegex(@"\d{2}[^\d]+\d{2}[^\d]+\d{2}([^\d])")]
+		[GeneratedRegex(@"^\d{2}[^\d]+\d{2}[^\d]+\d{2}([^\d])")]
 		private static partial Regex LogFileSeparatorRegex();
 
-		[GeneratedRegex(@"\d{2}[^\d]+\d{2}[^\d]+\d{2}[^\d]+\d+[^\d]+\d+[^\d]+\d+[^\d]+\d{2}([^\d])")]
+		[GeneratedRegex(@"^\d{2}[^\d]+\d{2}[^\d]+\d{2}[^\d]+\d+[^\d]+\d+[^\d]+\d+([^\d])")]
 		private static partial Regex DayFileTimeSeparatorRegex();
 
-		[GeneratedRegex(@"\d{2}[^\d]+\d{2}[^\d]+\d{2}[^\d]{1}\d{2}([^\d])")]
+		[GeneratedRegex(@"^\d{2}[^\d]+\d{2}[^\d]+\d{2}[^\d]{1}\d{2}([^\d])")]
 		private static partial Regex LogFileTimeSeparatorRegex();
 
 		[GeneratedRegex(@"[^\d]+")]

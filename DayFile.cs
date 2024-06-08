@@ -33,10 +33,10 @@ namespace MigrateData3to4
 				// read the first line to determine format
 				var lines = File.ReadLines(inpFilename).ToArray();
 				Program.sepField = Utils.GetLogFileSeparator(lines[0], ',');
-				Utils.LogMessage($"LogFile: File {inpFilename} is using the separator: {Program.sepField}");
+				Utils.LogMessage($"LogFile: File {inpFilename} is using the field separator: {Program.sepField}");
 
 				Program.sepTime = Utils.GetDayFileTimeSeparator(lines[0], ':');
-				Utils.LogMessage($"LogFile: File is using the time separator: {Program.sepTime}");
+				Utils.LogMessage($"LogFile: File {inpFilename} is using the time separator: {Program.sepTime}");
 
 				if (Program.sepTime != ':')
 				{
