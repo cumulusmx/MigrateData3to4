@@ -11,6 +11,7 @@
     <StartupObject>MigrateData3to4.Program</StartupObject>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
     <Copyright>Copyright ©  2023-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>none</DebugType>
