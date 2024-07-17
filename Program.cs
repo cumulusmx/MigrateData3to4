@@ -1,21 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace MigrateData3to4
 {
 	static class Program
 	{
 		public const string Src = "datav3";
-		public const  string Dst = "data";
+		public const string Dst = "data";
 		public static char sepField;
 		public static char sepTime;
 
-		static void Main()
+		static void Main(string[] args)
 		{
+
+			for (int i = 0; i < args.Length; i++)
+			{
+				try
+				{
+					switch (args[i])
+					{
+						case "-lang" when args.Length >= i:
+							{
+								var lang = args[++i];
+								// some people enter the code as eg en_GB, it should use dash en-GB
+								lang = lang.Replace('_', '-');
+
+								CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
+								CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
+								Thread.CurrentThread.CurrentCulture = new CultureInfo(lang);
+								CultureInfo.CurrentCulture = new CultureInfo(lang);
+								CultureInfo.CurrentUICulture = new CultureInfo(lang);
+								break;
+							}
+					}
+				}
+				catch
+				{
+					Usage();
+				}
+			}
+
 			TextWriterTraceListener myTextListener = new($"MXdiags{Path.DirectorySeparatorChar}MigrateData-{DateTime.Now:yyyyMMdd-HHmmss}.txt", "MDlog");
 			Trace.Listeners.Add(myTextListener);
 			Trace.AutoFlush = true;
@@ -84,6 +114,15 @@ namespace MigrateData3to4
 			Console.WriteLine("Press Enter to exit");
 			Console.ReadKey(true);
 
+		}
+
+		private static void Usage()
+		{
+			Console.WriteLine();
+			Console.WriteLine("Valid arguments are:");
+			Console.WriteLine(" -lang <culture_name> - Sets the Language MigrateData3to4 will use (defaults to current user language)");
+			Console.WriteLine("\nMigrateData3to4 terminating");
+			Environment.Exit(1);
 		}
 	}
 }

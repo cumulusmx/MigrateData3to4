@@ -35,7 +35,7 @@ namespace MigrateData3to4
 				Program.sepField = Utils.GetLogFileSeparator(lines[0], ',');
 				Utils.LogMessage($"LogFile: File {inpFilename} is using the field separator: {Program.sepField}");
 
-				Program.sepTime = Utils.GetDayFileTimeSeparator(lines[0], ':');
+				Program.sepTime = Utils.GetDayFileTimeSeparator(lines[0].Split(Program.sepField)[3], ':');
 				Utils.LogMessage($"LogFile: File {inpFilename} is using the time separator: {Program.sepTime}");
 
 				if (Program.sepTime != ':')

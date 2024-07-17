@@ -25,12 +25,12 @@ namespace MigrateData3to4
 				return defSep;
 		}
 
-		internal static char GetDayFileTimeSeparator(string line, char defSep)
+		internal static char GetDayFileTimeSeparator(string highGustTime, char defSep)
 		{
 			// we know the dayfile starts with
 			// dd/MM/yy,NN,NN,hh:mm,...
 			// so we just need to find the first separator after the first three fields and before a number
-			var reg = DayFileTimeSeparatorRegex().Match(line);
+			var reg = DayFileTimeSeparatorRegex().Match(highGustTime);
 			if (reg.Success)
 				return reg.Groups[1].Value[0];
 			else
@@ -197,7 +197,7 @@ namespace MigrateData3to4
 		[GeneratedRegex(@"^\d{2}[^\d]+\d{2}[^\d]+\d{2}([^\d])")]
 		private static partial Regex LogFileSeparatorRegex();
 
-		[GeneratedRegex(@"^\d{2}[^\d]+\d{2}[^\d]+\d{2}[^\d]+\d+[^\d]+\d+[^\d]+\d+([^\d])")]
+		[GeneratedRegex(@"^\d{2}([^\d])")]
 		private static partial Regex DayFileTimeSeparatorRegex();
 
 		[GeneratedRegex(@"^\d{2}[^\d]+\d{2}[^\d]+\d{2}[^\d]{1}\d{2}([^\d])")]
