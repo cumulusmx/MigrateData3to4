@@ -38,14 +38,18 @@ namespace MigrateData3to4
 				{
 					var name = ini.GetValue("CustomLogs", "DailyFilename" + i, string.Empty);
 					if (!string.IsNullOrEmpty(name))
+					{
 						DailyLogs.Add(name + ".txt");
+					}
 				}
 
 				if (ini.ValueExists("CustomLogs", "IntervalFilename" + i))
 				{
 					var name = ini.GetValue("CustomLogs", "IntervalFilename" + i, string.Empty);
 					if (!string.IsNullOrEmpty(name))
+					{
 						IntvLogs.Add(name);
+					}
 				}
 			}
 		}

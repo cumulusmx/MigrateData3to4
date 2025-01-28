@@ -122,7 +122,23 @@ namespace MigrateData3to4
 			}
 			else
 			{
-				DoFiles(custLogs.DailyLogs.ToArray(), FileType.CustomDaily);
+				var dailyCustFiles = new List<string>();
+				var fileSep = Path.DirectorySeparatorChar;
+
+				foreach (var file in custLogs.DailyLogs)
+				{
+					if (File.Exists(Program.Src + fileSep + file))
+					{
+						dailyCustFiles.Add(Program.Src + fileSep + file);
+
+						Console.WriteLine($" Found custom daily log file {file} to process");
+						Utils.LogMessage($"CustomDaily: Found custom daily log file {file} to process");
+					}
+				}
+				Console.WriteLine($" Found {dailyCustFiles.Count} custom daily log files to process");
+				Utils.LogMessage($"CustomDaily: Found {dailyCustFiles.Count} custom daily log files to process");
+
+				DoFiles(dailyCustFiles.ToArray(), FileType.CustomDaily);
 			}
 		}
 
@@ -184,12 +200,6 @@ namespace MigrateData3to4
 
 			try
 			{
-				// Custom daily files are just the bare filename
-				if (fileType == FileType.CustomDaily)
-				{
-					inpFile = Program.Src + Path.DirectorySeparatorChar + inpFile;
-				}
-
 				// read the first line to determine format
 				var lines = File.ReadLines(inpFile).ToArray();
 				Program.sepField = Utils.GetLogFileSeparator(lines[0], ',');

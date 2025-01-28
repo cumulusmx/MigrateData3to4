@@ -7,17 +7,22 @@
     <Product>Cumulus MX Data Migration Utility</Product>
     <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
     <FileVersion>$(PackageVersion)</FileVersion>
-    <Version>1.0.3.0010</Version>
+    <Version>1.0.4.0011</Version>
     <StartupObject>MigrateData3to4.Program</StartupObject>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
     <Copyright>Copyright ©  2023-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="echo.&#xD;&#xA;echo Starting post-build tasks&#xD;&#xA;echo Update Distribution folder&#xD;&#xA;echo  - copy exe&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;xcopy &quot;$(OutputPath)\MigrateData3to4.exe&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo  - copy config&#xD;&#xA;xcopy &quot;$(OutputPath)\MigrateData3to4.runtimeconfig.json&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;" />
+    <Exec Command="echo.&#xD;&#xA;echo Starting post-build tasks&#xD;&#xA;echo Update Distribution folder&#xD;&#xA;if $(Platform)==x86 (&#xD;&#xA;  echo copy exe - x86&#xD;&#xA;  xcopy &quot;$(OutputPath)\MigrateData3to4.exe&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX\MigrateData3to4-32.exe&quot; /D /-I /Y&#xD;&#xA;)&#xD;&#xA;if $(Platform)==AnyCPU (&#xD;&#xA;  echo copy MX exe - AnyCPU&#xD;&#xA;  xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;  xcopy &quot;$(OutputPath)\MigrateData3to4.exe&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;  echo  - copy config&#xD;&#xA;  xcopy &quot;$(OutputPath)\MigrateData3to4.runtimeconfig.json&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;)&#xD;&#xA;echo ###############################################&#xD;&#xA;echo Build complete - MigrateData3to4: $(PackageVersion)&#xD;&#xA;echo ###############################################" />
   </Target>
 </Project>
